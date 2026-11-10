@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import {
   ExternalLink,
   Plus,
+  Printer,
   QrCode,
   Search,
   Trash2,
@@ -34,6 +35,7 @@ interface PlaquesViewProps {
   onClearBatchFilter: () => void;
   onClearClientFilter: () => void;
   onInspectPlaque: (plaque: Plaque) => void;
+  onPrintPlaque: (plaque: Plaque) => void;
   onRefresh: () => void;
 }
 
@@ -48,6 +50,7 @@ export function PlaquesView({
   onClearBatchFilter,
   onClearClientFilter,
   onInspectPlaque,
+  onPrintPlaque,
   onRefresh,
 }: PlaquesViewProps) {
   const isAdmin = user.role === 'admin';
@@ -281,8 +284,17 @@ export function PlaquesView({
                     <div className="inline-flex items-center gap-2">
                       <button
                         type="button"
+                        onClick={() => onPrintPlaque(plaque)}
+                        title="Diseñar e imprimir placa 10×15 cm"
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md bg-slate-800 hover:bg-slate-700 text-xs font-medium text-emerald-300 cursor-pointer whitespace-nowrap"
+                      >
+                        <Printer className="w-3.5 h-3.5" />
+                        <span>10×15</span>
+                      </button>
+                      <button
+                        type="button"
                         onClick={() => onInspectPlaque(plaque)}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-blue-600/15 hover:bg-blue-600/25 border border-blue-500/30 text-xs font-medium text-blue-300 cursor-pointer"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-blue-600/15 hover:bg-blue-600/25 border border-blue-500/30 text-xs font-medium text-blue-300 cursor-pointer whitespace-nowrap"
                       >
                         <QrCode className="w-3.5 h-3.5" />
                         <span>Editar / QR</span>

@@ -6,6 +6,7 @@ import {
   Download,
   ExternalLink,
   Nfc,
+  Printer,
   Save,
   X,
 } from 'lucide-react';
@@ -32,6 +33,7 @@ interface PlaqueInspectorModalProps {
   plaque: Plaque;
   clients: Client[];
   onClose: () => void;
+  onPrintPlaque: (plaque: Plaque) => void;
   onUpdated: (updated: Plaque) => void;
 }
 
@@ -40,6 +42,7 @@ export function PlaqueInspectorModal({
   plaque,
   clients,
   onClose,
+  onPrintPlaque,
   onUpdated,
 }: PlaqueInspectorModalProps) {
   const isAdmin = user.role === 'admin';
@@ -414,6 +417,24 @@ export function PlaqueInspectorModal({
                   <span>SVG Vector</span>
                 </button>
               </div>
+
+              <button
+                type="button"
+                onClick={() =>
+                  onPrintPlaque({
+                    ...plaque,
+                    label,
+                    slug,
+                    plaqueType,
+                    clientName:
+                      clients.find((c) => c.id === clientId)?.businessName || plaque.clientName,
+                  })
+                }
+                className="mt-3 w-full inline-flex items-center justify-center gap-2 px-3.5 py-2 rounded-lg bg-emerald-600/15 hover:bg-emerald-600/25 border border-emerald-500/30 text-xs font-semibold text-emerald-300 transition-colors cursor-pointer"
+              >
+                <Printer className="w-3.5 h-3.5" />
+                <span>Diseñar placa completa 10×15 cm</span>
+              </button>
             </div>
 
             <div className="space-y-2.5 pt-4 border-t border-slate-800/80">

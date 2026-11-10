@@ -180,9 +180,56 @@ export function GenerateBatchModal({
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="sm:col-span-2">
-              <label className="block text-xs font-medium text-slate-300 mb-1.5">
-                URL destino inicial (opcional)
-              </label>
+              <div className="flex items-center justify-between gap-2 mb-1.5">
+                <label className="text-xs font-medium text-slate-300">
+                  URL destino inicial (opcional)
+                </label>
+                <div className="flex items-center gap-2 text-[11px]">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPlaqueType('google_reviews');
+                      setDefaultTargetUrl('https://g.page/r/tu-negocio/review');
+                    }}
+                    className="text-blue-400 hover:underline cursor-pointer"
+                  >
+                    Google
+                  </button>
+                  <span className="text-slate-600">·</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPlaqueType('whatsapp_direct');
+                      setDefaultTargetUrl('https://wa.me/5491100000000?text=Hola');
+                    }}
+                    className="text-emerald-400 hover:underline cursor-pointer"
+                  >
+                    WhatsApp
+                  </button>
+                  <span className="text-slate-600">·</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPlaqueType('digital_card');
+                      setDefaultTargetUrl('https://instagram.com/tucomercio');
+                    }}
+                    className="text-pink-400 hover:underline cursor-pointer"
+                  >
+                    Instagram
+                  </button>
+                  <span className="text-slate-600">·</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPlaqueType('digital_card');
+                      setDefaultTargetUrl('https://tiktok.com/@tucomercio');
+                    }}
+                    className="text-cyan-400 hover:underline cursor-pointer"
+                  >
+                    TikTok
+                  </button>
+                </div>
+              </div>
               <input
                 type="url"
                 maxLength={1000}

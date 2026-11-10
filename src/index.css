@@ -26,7 +26,6 @@
   }
 }
 
-/* Custom subtle scrollbars for dark slate workspace */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -43,4 +42,59 @@
 
 ::-webkit-scrollbar-thumb:hover {
   background: #334155;
+}
+
+#print-sheet-root {
+  display: none;
+}
+
+@media print {
+  html,
+  body {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  #print-sheet-root {
+    display: block !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .print-mode-10x15 .print-plaque-page {
+    width: 100mm !important;
+    height: 150mm !important;
+    margin: 0 !important;
+    page-break-after: always !important;
+    break-after: page !important;
+    overflow: hidden !important;
+  }
+
+  .print-mode-10x15 .print-plaque-page:last-child {
+    page-break-after: auto !important;
+    break-after: auto !important;
+  }
+
+  .print-mode-a4-grid {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 6mm !important;
+    padding: 8mm !important;
+    justify-content: center !important;
+  }
+
+  .print-mode-a4-grid .print-plaque-page {
+    width: 100mm !important;
+    height: 150mm !important;
+    border: 0.25mm dashed #94a3b8 !important;
+    break-inside: avoid !important;
+    overflow: hidden !important;
+  }
 }

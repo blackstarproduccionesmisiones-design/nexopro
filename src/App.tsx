@@ -17,6 +17,7 @@ import { ClientsView } from './components/ClientsView';
 import { RouterTesterView } from './components/RouterTesterView';
 import { GenerateBatchModal } from './components/GenerateBatchModal';
 import { PlaqueInspectorModal } from './components/PlaqueInspectorModal';
+import { PlaquePrintModal } from './components/PlaquePrintModal';
 
 const SECTION_TITLES: Record<NavSection, string> = {
   overview: 'Panel principal',
@@ -45,6 +46,9 @@ export default function App() {
   const [clientFilterId, setClientFilterId] = useState<string | null>(null);
   const [showNewBatchModal, setShowNewBatchModal] = useState(false);
   const [inspectedPlaque, setInspectedPlaque] = useState<Plaque | null>(null);
+  const [printContext, setPrintContext] = useState<{ title: string; plaques: Plaque[] } | null>(
+    null
+  );
 
   const loadWorkspaceData = useCallback(async (currentUser: AuthUser) => {
     if (currentUser.role === 'client' && !currentUser.clientId) {
@@ -157,7 +161,8 @@ export default function App() {
   const isAdmin = user.role === 'admin';
 
   return (
-    <div className="min-h-screen bg-[#080D1A] text-slate-100 flex">
+    <>
+      <div className="min-h-screen bg-[#080D1A] text-slate-100 flex no-print">
       <Sidebar
         user={user}
         activeSection={section}
@@ -242,6 +247,15 @@ export default function App() {
                 setBatchFilterId(batchId);
                 setSection('plaques');
               }}
+              onPrintBatch={(batch) => {
+                const batchPlaques = plaques.filter((p) => p.batchId === batch.id);
+                if (batchPlaques.length > 0) {
+                  setPrintContext({
+                    title: `${batch.code} — ${batch.name}`,
+                    plaques: batchPlaques,
+                  });
+                }
+              }}
               onRefresh={refreshAll}
             />
           )}
@@ -258,6 +272,12 @@ export default function App() {
               onClearBatchFilter={() => setBatchFilterId(null)}
               onClearClientFilter={() => setClientFilterId(null)}
               onInspectPlaque={(p) => setInspectedPlaque(p)}
+              onPrintPlaque={(p) =>
+                setPrintContext({
+                  title: `Placa ${p.serialCode}`,
+                  plaques: [p],
+                })
+              }
               onRefresh={refreshAll}
             />
           )}
@@ -298,6 +318,12 @@ export default function App() {
           plaque={inspectedPlaque}
           clients={clients}
           onClose={() => setInspectedPlaque(null)}
+          onPrintPlaque={(p) =>
+            setPrintContext({
+              title: `Placa ${p.serialCode}`,
+              plaques: [p],
+            })
+          }
           onUpdated={(updated) => {
             setInspectedPlaque(updated);
             refreshAll();
@@ -305,5 +331,14 @@ export default function App() {
         />
       )}
     </div>
+
+    {printContext && (
+      <PlaquePrintModal
+        title={printContext.title}
+        plaques={printContext.plaques}
+        onClose={() => setPrintContext(null)}
+      />
+    )}
+    </>
   );
 }

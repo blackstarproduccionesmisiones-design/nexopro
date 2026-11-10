@@ -4,6 +4,7 @@ import {
   ExternalLink,
   Layers,
   PlusSquare,
+  Printer,
   Search,
   Trash2,
 } from 'lucide-react';
@@ -28,6 +29,7 @@ interface BatchesViewProps {
   loading: boolean;
   onOpenNewBatch: () => void;
   onViewBatchPlaques: (batchId: string) => void;
+  onPrintBatch: (batch: Batch) => void;
   onRefresh: () => void;
 }
 
@@ -38,6 +40,7 @@ export function BatchesView({
   loading,
   onOpenNewBatch,
   onViewBatchPlaques,
+  onPrintBatch,
   onRefresh,
 }: BatchesViewProps) {
   const isAdmin = user.role === 'admin';
@@ -218,8 +221,17 @@ export function BatchesView({
                     <div className="inline-flex items-center gap-2">
                       <button
                         type="button"
+                        onClick={() => onPrintBatch(batch)}
+                        title="Generar placas listas para impresión 10×15 cm"
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md bg-blue-600/15 hover:bg-blue-600/25 border border-blue-500/30 text-xs font-medium text-blue-300 cursor-pointer whitespace-nowrap"
+                      >
+                        <Printer className="w-3.5 h-3.5" />
+                        <span>Placas 10×15</span>
+                      </button>
+                      <button
+                        type="button"
                         onClick={() => onViewBatchPlaques(batch.id)}
-                        className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-md bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-200 cursor-pointer"
+                        className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-md bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-200 cursor-pointer whitespace-nowrap"
                       >
                         <span>Ver plaquitas</span>
                         <ExternalLink className="w-3 h-3" />
@@ -228,7 +240,7 @@ export function BatchesView({
                         type="button"
                         onClick={() => downloadBatchCsvClient(batch, plaques)}
                         title="Exportar CSV para imprenta"
-                        className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-md bg-slate-800 hover:bg-slate-700 text-xs font-medium text-blue-300 cursor-pointer"
+                        className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-md bg-slate-800 hover:bg-slate-700 text-xs font-medium text-blue-300 cursor-pointer whitespace-nowrap"
                       >
                         <Download className="w-3.5 h-3.5" />
                         <span>CSV</span>
