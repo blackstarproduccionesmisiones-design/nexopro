@@ -1,0 +1,408 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "Private user account profile and RBAC role assignment.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "minLength": 3,
+          "maxLength": 200
+        },
+        "displayName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "role": {
+          "type": "string",
+          "enum": ["admin", "client"]
+        },
+        "clientId": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "clientAccessId": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["uid", "email", "displayName", "role", "clientId", "clientAccessId", "createdAt"]
+    },
+    "Client": {
+      "title": "Client",
+      "description": "Business merchant purchasing NFC/QR plaques and monthly plans.",
+      "type": "object",
+      "properties": {
+        "businessName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 140
+        },
+        "contactName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "minLength": 3,
+          "maxLength": 200
+        },
+        "phone": {
+          "type": "string",
+          "maxLength": 40
+        },
+        "category": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 60
+        },
+        "plan": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 60
+        },
+        "monthlyFee": {
+          "type": "number"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["active", "paused", "trial"]
+        },
+        "notes": {
+          "type": "string",
+          "maxLength": 500
+        },
+        "portalEmail": {
+          "type": "string",
+          "maxLength": 200
+        },
+        "ownerUid": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["businessName", "contactName", "email", "phone", "category", "plan", "monthlyFee", "status", "notes", "portalEmail", "ownerUid", "createdAt", "updatedAt"]
+    },
+    "ClientPortalAccess": {
+      "title": "ClientPortalAccess",
+      "description": "Verified email-to-clientId binding keyed by sanitized email ID.",
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string",
+          "format": "email",
+          "minLength": 3,
+          "maxLength": 200
+        },
+        "clientId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "businessName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 140
+        },
+        "createdByUid": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["email", "clientId", "businessName", "createdByUid", "createdAt"]
+    },
+    "Batch": {
+      "title": "Batch",
+      "description": "Correlative production batch of physical NFC/QR plaques.",
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 40
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "clientId": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "clientName": {
+          "type": "string",
+          "maxLength": 140
+        },
+        "authorizedEmail": {
+          "type": "string",
+          "maxLength": 200
+        },
+        "plaqueType": {
+          "type": "string",
+          "enum": ["google_reviews", "digital_card", "qr_menu", "whatsapp_direct", "custom"]
+        },
+        "prefix": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[a-z0-9-]+$"
+        },
+        "quantity": {
+          "type": "number"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["active", "production", "inactive"]
+        },
+        "ownerUid": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["code", "name", "clientId", "clientName", "authorizedEmail", "plaqueType", "prefix", "quantity", "status", "ownerUid", "createdAt", "updatedAt"]
+    },
+    "Plaque": {
+      "title": "Plaque",
+      "description": "Individual physical NFC/QR plaque with dynamic destination URL.",
+      "type": "object",
+      "properties": {
+        "serialCode": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 40
+        },
+        "slug": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[a-z0-9-]+$"
+        },
+        "batchId": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "batchCode": {
+          "type": "string",
+          "maxLength": 40
+        },
+        "clientId": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "clientName": {
+          "type": "string",
+          "maxLength": 140
+        },
+        "authorizedEmail": {
+          "type": "string",
+          "maxLength": 200
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 140
+        },
+        "plaqueType": {
+          "type": "string",
+          "enum": ["google_reviews", "digital_card", "qr_menu", "whatsapp_direct", "custom"]
+        },
+        "targetUrl": {
+          "type": "string",
+          "maxLength": 1000
+        },
+        "status": {
+          "type": "string",
+          "enum": ["active", "paused", "unassigned"]
+        },
+        "redirectCode": {
+          "type": "number"
+        },
+        "scansCount": {
+          "type": "number"
+        },
+        "lastScannedAt": {
+          "type": "string",
+          "maxLength": 64
+        },
+        "ownerUid": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["serialCode", "slug", "batchId", "batchCode", "clientId", "clientName", "authorizedEmail", "label", "plaqueType", "targetUrl", "status", "redirectCode", "scansCount", "lastScannedAt", "ownerUid", "createdAt", "updatedAt"]
+    },
+    "RouteLookup": {
+      "title": "RouteLookup",
+      "description": "Public non-PII routing entry keyed by slug for server-side HTTP 301 resolution.",
+      "type": "object",
+      "properties": {
+        "slug": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[a-z0-9-]+$"
+        },
+        "plaqueId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "batchId": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "clientId": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "targetUrl": {
+          "type": "string",
+          "maxLength": 1000
+        },
+        "status": {
+          "type": "string",
+          "enum": ["active", "paused", "unassigned"]
+        },
+        "redirectCode": {
+          "type": "number"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["slug", "plaqueId", "batchId", "clientId", "targetUrl", "status", "redirectCode", "updatedAt"]
+    },
+    "ScanEvent": {
+      "title": "ScanEvent",
+      "description": "Recorded scan or NFC tap event for analytics.",
+      "type": "object",
+      "properties": {
+        "plaqueId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "batchId": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "clientId": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "authorizedEmail": {
+          "type": "string",
+          "maxLength": 200
+        },
+        "slug": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64
+        },
+        "deviceType": {
+          "type": "string",
+          "enum": ["mobile", "desktop", "tablet"]
+        },
+        "os": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 40
+        },
+        "channel": {
+          "type": "string",
+          "enum": ["qr", "nfc", "direct"]
+        },
+        "recordedByUid": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "scannedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["plaqueId", "batchId", "clientId", "authorizedEmail", "slug", "deviceType", "os", "channel", "recordedByUid", "scannedAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/UserProfile" },
+      "description": "Private user account profiles and client assignments."
+    },
+    "/clients/{clientId}": {
+      "schema": { "$ref": "#/entities/Client" },
+      "description": "Business clients managed by the platform administrator."
+    },
+    "/clientPortalAccess/{accessId}": {
+      "schema": { "$ref": "#/entities/ClientPortalAccess" },
+      "description": "Verified email-to-clientId portal access bindings."
+    },
+    "/batches/{batchId}": {
+      "schema": { "$ref": "#/entities/Batch" },
+      "description": "Correlative plaque production batches."
+    },
+    "/plaques/{plaqueId}": {
+      "schema": { "$ref": "#/entities/Plaque" },
+      "description": "Individual physical NFC/QR plaques and dynamic target URLs."
+    },
+    "/routes/{slug}": {
+      "schema": { "$ref": "#/entities/RouteLookup" },
+      "description": "Non-PII slug routing lookup documents for HTTP 301 resolution."
+    },
+    "/scans/{scanId}": {
+      "schema": { "$ref": "#/entities/ScanEvent" },
+      "description": "Scan and NFC tap telemetry events."
+    }
+  }
+}

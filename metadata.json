@@ -1,0 +1,6 @@
+{
+  "name": "Dinámico Pro",
+  "description": "Plataforma de gestión centralizada, redirección dinámica HTTP 301 y analítica para placas físicas NFC y códigos QR.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

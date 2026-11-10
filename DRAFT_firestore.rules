@@ -1,0 +1,376 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global safety net: deny everything by default
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // =========================================================================
+    // GLOBAL HELPERS & IDENTITY PRIMITIVES
+    // =========================================================================
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isVerifiedUser() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isValidSlug(slug) {
+      return slug is string && slug.size() >= 1 && slug.size() <= 64 && slug.matches('^[a-z0-9\\-]+$');
+    }
+
+    function isAdminEmail() {
+      return isVerifiedUser() &&
+        request.auth.token.email == 'blackstarproducciones.misiones@gmail.com';
+    }
+
+    function isAdmin() {
+      return isAdminEmail() || (
+        isVerifiedUser() &&
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+      );
+    }
+
+    function hasUserProfile() {
+      return isVerifiedUser() &&
+        exists(/databases/$(database)/documents/users/$(request.auth.uid));
+    }
+
+    function getUserClientId() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.clientId;
+    }
+
+    function isClientOwner(clientId) {
+      return clientId is string && clientId.size() > 0 && hasUserProfile() && getUserClientId() == clientId;
+    }
+
+    function isValidPortalBinding(accessId, clientId) {
+      return isValidId(accessId) &&
+        exists(/databases/$(database)/documents/clientPortalAccess/$(accessId)) &&
+        get(/databases/$(database)/documents/clientPortalAccess/$(accessId)).data.email == request.auth.token.email &&
+        get(/databases/$(database)/documents/clientPortalAccess/$(accessId)).data.clientId == clientId;
+    }
+
+    // =========================================================================
+    // ENTITY VALIDATION HELPERS
+    // =========================================================================
+    function isValidUserProfile(data, uidParam) {
+      return data.keys().hasAll(['uid', 'email', 'displayName', 'role', 'clientId', 'clientAccessId', 'createdAt']) &&
+        data.keys().hasOnly(['uid', 'email', 'displayName', 'role', 'clientId', 'clientAccessId', 'createdAt']) &&
+        data.uid == uidParam &&
+        data.email is string && data.email.size() >= 3 && data.email.size() <= 200 &&
+        data.displayName is string && data.displayName.size() >= 1 && data.displayName.size() <= 120 &&
+        data.role in ['admin', 'client'] &&
+        data.clientId is string && data.clientId.size() <= 128 &&
+        data.clientAccessId is string && data.clientAccessId.size() <= 128 &&
+        data.createdAt is timestamp;
+    }
+
+    function isValidClient(data) {
+      return data.keys().hasAll([
+          'businessName', 'contactName', 'email', 'phone', 'category',
+          'plan', 'monthlyFee', 'status', 'notes', 'portalEmail',
+          'ownerUid', 'createdAt', 'updatedAt'
+        ]) &&
+        data.keys().hasOnly([
+          'businessName', 'contactName', 'email', 'phone', 'category',
+          'plan', 'monthlyFee', 'status', 'notes', 'portalEmail',
+          'ownerUid', 'createdAt', 'updatedAt'
+        ]) &&
+        data.businessName is string && data.businessName.size() >= 1 && data.businessName.size() <= 140 &&
+        data.contactName is string && data.contactName.size() >= 1 && data.contactName.size() <= 120 &&
+        data.email is string && data.email.size() >= 3 && data.email.size() <= 200 &&
+        data.phone is string && data.phone.size() <= 40 &&
+        data.category is string && data.category.size() >= 1 && data.category.size() <= 60 &&
+        data.plan is string && data.plan.size() >= 1 && data.plan.size() <= 60 &&
+        (data.monthlyFee is int || data.monthlyFee is float) && data.monthlyFee >= 0 &&
+        data.status in ['active', 'paused', 'trial'] &&
+        data.notes is string && data.notes.size() <= 500 &&
+        data.portalEmail is string && data.portalEmail.size() <= 200 &&
+        data.ownerUid is string && data.ownerUid.size() >= 1 && data.ownerUid.size() <= 128 &&
+        data.createdAt is timestamp &&
+        data.updatedAt is timestamp;
+    }
+
+    function isValidClientPortalAccess(data) {
+      return data.keys().hasAll(['email', 'clientId', 'businessName', 'createdByUid', 'createdAt']) &&
+        data.keys().hasOnly(['email', 'clientId', 'businessName', 'createdByUid', 'createdAt']) &&
+        data.email is string && data.email.size() >= 3 && data.email.size() <= 200 &&
+        isValidId(data.clientId) &&
+        data.businessName is string && data.businessName.size() >= 1 && data.businessName.size() <= 140 &&
+        data.createdByUid is string && data.createdByUid == request.auth.uid &&
+        data.createdAt is timestamp;
+    }
+
+    function isValidBatch(data) {
+      return data.keys().hasAll([
+          'code', 'name', 'clientId', 'clientName', 'authorizedEmail', 'plaqueType',
+          'prefix', 'quantity', 'status', 'ownerUid', 'createdAt', 'updatedAt'
+        ]) &&
+        data.keys().hasOnly([
+          'code', 'name', 'clientId', 'clientName', 'authorizedEmail', 'plaqueType',
+          'prefix', 'quantity', 'status', 'ownerUid', 'createdAt', 'updatedAt'
+        ]) &&
+        data.code is string && data.code.size() >= 1 && data.code.size() <= 40 &&
+        data.name is string && data.name.size() >= 1 && data.name.size() <= 160 &&
+        data.clientId is string && data.clientId.size() <= 128 &&
+        data.clientName is string && data.clientName.size() <= 140 &&
+        data.authorizedEmail is string && data.authorizedEmail.size() <= 200 &&
+        data.plaqueType in ['google_reviews', 'digital_card', 'qr_menu', 'whatsapp_direct', 'custom'] &&
+        isValidSlug(data.prefix) &&
+        data.quantity is int && data.quantity >= 1 && data.quantity <= 200 &&
+        data.status in ['active', 'production', 'inactive'] &&
+        data.ownerUid is string && data.ownerUid.size() >= 1 && data.ownerUid.size() <= 128 &&
+        data.createdAt is timestamp &&
+        data.updatedAt is timestamp;
+    }
+
+    function isValidPlaque(data) {
+      return data.keys().hasAll([
+          'serialCode', 'slug', 'batchId', 'batchCode', 'clientId', 'clientName', 'authorizedEmail',
+          'label', 'plaqueType', 'targetUrl', 'status', 'redirectCode',
+          'scansCount', 'lastScannedAt', 'ownerUid', 'createdAt', 'updatedAt'
+        ]) &&
+        data.keys().hasOnly([
+          'serialCode', 'slug', 'batchId', 'batchCode', 'clientId', 'clientName', 'authorizedEmail',
+          'label', 'plaqueType', 'targetUrl', 'status', 'redirectCode',
+          'scansCount', 'lastScannedAt', 'ownerUid', 'createdAt', 'updatedAt'
+        ]) &&
+        data.serialCode is string && data.serialCode.size() >= 1 && data.serialCode.size() <= 40 &&
+        isValidSlug(data.slug) &&
+        data.batchId is string && data.batchId.size() <= 128 &&
+        data.batchCode is string && data.batchCode.size() <= 40 &&
+        data.clientId is string && data.clientId.size() <= 128 &&
+        data.clientName is string && data.clientName.size() <= 140 &&
+        data.authorizedEmail is string && data.authorizedEmail.size() <= 200 &&
+        data.label is string && data.label.size() >= 1 && data.label.size() <= 140 &&
+        data.plaqueType in ['google_reviews', 'digital_card', 'qr_menu', 'whatsapp_direct', 'custom'] &&
+        data.targetUrl is string && data.targetUrl.size() <= 1000 &&
+        data.status in ['active', 'paused', 'unassigned'] &&
+        data.redirectCode in [301, 302] &&
+        data.scansCount is int && data.scansCount >= 0 &&
+        data.lastScannedAt is string && data.lastScannedAt.size() <= 64 &&
+        data.ownerUid is string && data.ownerUid.size() >= 1 && data.ownerUid.size() <= 128 &&
+        data.createdAt is timestamp &&
+        data.updatedAt is timestamp;
+    }
+
+    function isValidRouteLookup(data, slugParam) {
+      return data.keys().hasAll([
+          'slug', 'plaqueId', 'batchId', 'clientId', 'targetUrl', 'status', 'redirectCode', 'updatedAt'
+        ]) &&
+        data.keys().hasOnly([
+          'slug', 'plaqueId', 'batchId', 'clientId', 'targetUrl', 'status', 'redirectCode', 'updatedAt'
+        ]) &&
+        isValidSlug(slugParam) &&
+        data.slug == slugParam &&
+        isValidId(data.plaqueId) &&
+        data.batchId is string && data.batchId.size() <= 128 &&
+        data.clientId is string && data.clientId.size() <= 128 &&
+        data.targetUrl is string && data.targetUrl.size() <= 1000 &&
+        data.status in ['active', 'paused', 'unassigned'] &&
+        data.redirectCode in [301, 302] &&
+        data.updatedAt is timestamp;
+    }
+
+    function isValidScanEvent(data) {
+      return data.keys().hasAll([
+          'plaqueId', 'batchId', 'clientId', 'authorizedEmail', 'slug',
+          'deviceType', 'os', 'channel', 'recordedByUid', 'scannedAt'
+        ]) &&
+        data.keys().hasOnly([
+          'plaqueId', 'batchId', 'clientId', 'authorizedEmail', 'slug',
+          'deviceType', 'os', 'channel', 'recordedByUid', 'scannedAt'
+        ]) &&
+        isValidId(data.plaqueId) &&
+        data.batchId is string && data.batchId.size() <= 128 &&
+        data.clientId is string && data.clientId.size() <= 128 &&
+        data.authorizedEmail is string && data.authorizedEmail.size() <= 200 &&
+        isValidSlug(data.slug) &&
+        data.deviceType in ['mobile', 'desktop', 'tablet'] &&
+        data.os is string && data.os.size() >= 1 && data.os.size() <= 40 &&
+        data.channel in ['qr', 'nfc', 'direct'] &&
+        data.recordedByUid == request.auth.uid &&
+        data.scannedAt is timestamp;
+    }
+
+    // =========================================================================
+    // COLLECTION RULES
+    // =========================================================================
+
+    match /admins/{adminUid} {
+      allow get: if isVerifiedUser() && isValidId(adminUid) && (request.auth.uid == adminUid || isAdmin());
+      allow list: if isAdminEmail();
+      allow write: if false;
+    }
+
+    match /users/{userId} {
+      allow get: if isVerifiedUser() && isValidId(userId) && (request.auth.uid == userId || isAdmin());
+      allow list: if isAdminEmail();
+      allow create: if isVerifiedUser() && isValidId(userId) &&
+        request.auth.uid == userId &&
+        isValidUserProfile(incoming(), userId) &&
+        incoming().email == request.auth.token.email &&
+        incoming().createdAt == request.time &&
+        (
+          (isAdmin() && incoming().role == 'admin') ||
+          (
+            incoming().role == 'client' &&
+            (
+              (incoming().clientId == '' && incoming().clientAccessId == '') ||
+              isValidPortalBinding(incoming().clientAccessId, incoming().clientId)
+            )
+          )
+        );
+      allow update: if isVerifiedUser() && isValidId(userId) &&
+        isValidUserProfile(incoming(), userId) &&
+        incoming().createdAt == existing().createdAt &&
+        (
+          isAdmin() ||
+          (
+            request.auth.uid == userId &&
+            incoming().role == existing().role &&
+            incoming().clientId == existing().clientId &&
+            incoming().clientAccessId == existing().clientAccessId &&
+            incoming().email == existing().email &&
+            incoming().diff(existing()).affectedKeys().hasOnly(['displayName'])
+          )
+        );
+      allow delete: if isAdmin() && isValidId(userId);
+    }
+
+    match /clientPortalAccess/{accessId} {
+      allow get: if isVerifiedUser() && isValidId(accessId) &&
+        (isAdmin() || existing().email == request.auth.token.email);
+      allow list: if isAdminEmail();
+      allow create: if isAdmin() && isValidId(accessId) &&
+        isValidClientPortalAccess(incoming()) &&
+        incoming().createdAt == request.time;
+      allow update: if isAdmin() && isValidId(accessId) &&
+        isValidClientPortalAccess(incoming()) &&
+        incoming().createdAt == existing().createdAt;
+      allow delete: if isAdmin() && isValidId(accessId);
+    }
+
+    match /clients/{clientId} {
+      allow get: if isVerifiedUser() && isValidId(clientId) && (isAdmin() || isClientOwner(clientId));
+      allow list: if isAdminEmail();
+      allow create: if isAdmin() && isValidId(clientId) &&
+        isValidClient(incoming()) &&
+        incoming().ownerUid == request.auth.uid &&
+        incoming().createdAt == request.time &&
+        incoming().updatedAt == request.time;
+      allow update: if isAdmin() && isValidId(clientId) &&
+        isValidClient(incoming()) &&
+        incoming().ownerUid == existing().ownerUid &&
+        incoming().createdAt == existing().createdAt &&
+        incoming().updatedAt == request.time;
+      allow delete: if isAdmin() && isValidId(clientId);
+    }
+
+    match /batches/{batchId} {
+      allow get: if isVerifiedUser() && isValidId(batchId) && (isAdmin() || isClientOwner(existing().clientId));
+      allow list: if isAdminEmail() || (isVerifiedUser() && resource.data.authorizedEmail == request.auth.token.email);
+      allow create: if isAdmin() && isValidId(batchId) &&
+        isValidBatch(incoming()) &&
+        incoming().ownerUid == request.auth.uid &&
+        incoming().createdAt == request.time &&
+        incoming().updatedAt == request.time;
+      allow update: if isAdmin() && isValidId(batchId) &&
+        isValidBatch(incoming()) &&
+        incoming().ownerUid == existing().ownerUid &&
+        incoming().createdAt == existing().createdAt &&
+        incoming().updatedAt == request.time;
+      allow delete: if isAdmin() && isValidId(batchId);
+    }
+
+    match /plaques/{plaqueId} {
+      allow get: if isVerifiedUser() && isValidId(plaqueId) && (isAdmin() || isClientOwner(existing().clientId));
+      allow list: if isAdminEmail() || (isVerifiedUser() && resource.data.authorizedEmail == request.auth.token.email);
+      allow create: if isAdmin() && isValidId(plaqueId) &&
+        isValidPlaque(incoming()) &&
+        incoming().ownerUid == request.auth.uid &&
+        incoming().createdAt == request.time &&
+        incoming().updatedAt == request.time;
+      allow update: if isVerifiedUser() && isValidId(plaqueId) &&
+        isValidPlaque(incoming()) &&
+        incoming().ownerUid == existing().ownerUid &&
+        incoming().createdAt == existing().createdAt &&
+        incoming().updatedAt == request.time &&
+        (
+          isAdmin() ||
+          (
+            isClientOwner(existing().clientId) &&
+            incoming().clientId == existing().clientId &&
+            incoming().authorizedEmail == existing().authorizedEmail &&
+            incoming().slug == existing().slug &&
+            incoming().serialCode == existing().serialCode &&
+            incoming().batchId == existing().batchId &&
+            (
+              incoming().diff(existing()).affectedKeys().hasOnly(['label', 'targetUrl', 'status', 'updatedAt']) ||
+              (
+                incoming().scansCount == existing().scansCount + 1 &&
+                incoming().diff(existing()).affectedKeys().hasOnly(['scansCount', 'lastScannedAt', 'updatedAt'])
+              )
+            )
+          )
+        );
+      allow delete: if isAdmin() && isValidId(plaqueId);
+    }
+
+    // Public non-PII single-slug lookup for Express HTTP 301 /qr/:slug router
+    match /routes/{slug} {
+      allow get: if isValidSlug(slug);
+      allow list: if false;
+      allow create: if isAdmin() && isValidRouteLookup(incoming(), slug) &&
+        incoming().updatedAt == request.time;
+      allow update: if isVerifiedUser() && isValidRouteLookup(incoming(), slug) &&
+        incoming().updatedAt == request.time &&
+        (
+          isAdmin() ||
+          (
+            isClientOwner(existing().clientId) &&
+            incoming().clientId == existing().clientId &&
+            incoming().plaqueId == existing().plaqueId &&
+            incoming().batchId == existing().batchId &&
+            incoming().diff(existing()).affectedKeys().hasOnly(['targetUrl', 'status', 'updatedAt'])
+          )
+        );
+      allow delete: if isAdmin() && isValidSlug(slug);
+    }
+
+    match /scans/{scanId} {
+      allow get: if isVerifiedUser() && isValidId(scanId) && (isAdmin() || isClientOwner(existing().clientId));
+      allow list: if isAdminEmail() || (isVerifiedUser() && resource.data.authorizedEmail == request.auth.token.email);
+      allow create: if isVerifiedUser() && isValidId(scanId) &&
+        isValidScanEvent(incoming()) &&
+        (
+          isAdmin() ||
+          (
+            isClientOwner(incoming().clientId) &&
+            incoming().scannedAt == request.time
+          )
+        );
+      allow update, delete: if false;
+    }
+
+    match /test/connection {
+      allow get: if isSignedIn();
+    }
+  }
+}
