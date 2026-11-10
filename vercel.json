@@ -1,0 +1,17 @@
+{
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "functions": {
+    "api/qr.ts": {
+      "includeFiles": "firebase-applet-config.json"
+    }
+  },
+  "rewrites": [
+    { "source": "/qr/:slug", "destination": "/api/qr?slug=:slug" },
+    { "source": "/api/qr/generate", "destination": "/api/qr-generate" },
+    { "source": "/api/router/test/:slug", "destination": "/api/router-test?slug=:slug" },
+    { "source": "/api/public-scans/ack", "destination": "/api/public-scans-ack" },
+    { "source": "/api/public-scans", "destination": "/api/public-scans" },
+    { "source": "/((?!api/|qr/|assets/).*)", "destination": "/index.html" }
+  ]
+}
