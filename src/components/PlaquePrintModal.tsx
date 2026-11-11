@@ -84,8 +84,10 @@ export function PlaquePrintModal({
     setHeadline(cfg.defaultHeadline);
     setSubtitle(cfg.defaultSubtitle);
     setInstruction(cfg.defaultInstruction);
-    if (nextId === 'tiktok') setSurfaceTheme('dark');
-    else if (nextId === 'google_reviews') setSurfaceTheme('light');
+    if (surfaceTheme !== 'brand') {
+      if (nextId === 'tiktok') setSurfaceTheme('dark');
+      else if (nextId === 'google_reviews') setSurfaceTheme('light');
+    }
   };
 
   const options: PlaquePrintOptions = {
@@ -219,28 +221,44 @@ export function PlaquePrintModal({
                   <label className="block text-xs font-medium text-slate-300 mb-1.5">
                     Acabado de la placa
                   </label>
-                  <div className="grid grid-cols-2 gap-1.5 p-1 bg-[#080D1A] border border-slate-800 rounded-lg">
+                  <div className="grid grid-cols-3 gap-1 p-1 bg-[#080D1A] border border-slate-800 rounded-lg">
                     <button
                       type="button"
                       onClick={() => setSurfaceTheme('light')}
-                      className={`py-1.5 rounded-md text-xs font-medium cursor-pointer ${
+                      className={`py-1.5 px-2 rounded-md text-xs font-medium cursor-pointer whitespace-nowrap ${
                         surfaceTheme === 'light'
                           ? 'bg-white text-slate-900'
                           : 'text-slate-400 hover:text-white'
                       }`}
                     >
-                      Fondo Blanco
+                      Blanco
                     </button>
                     <button
                       type="button"
                       onClick={() => setSurfaceTheme('dark')}
-                      className={`py-1.5 rounded-md text-xs font-medium cursor-pointer ${
+                      className={`py-1.5 px-2 rounded-md text-xs font-medium cursor-pointer whitespace-nowrap ${
                         surfaceTheme === 'dark'
                           ? 'bg-slate-700 text-white'
                           : 'text-slate-400 hover:text-white'
                       }`}
                     >
                       Negro Mate
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSurfaceTheme('brand')}
+                      className={`py-1.5 px-2 rounded-md text-xs font-medium cursor-pointer whitespace-nowrap transition-colors ${
+                        surfaceTheme === 'brand'
+                          ? 'text-white font-semibold'
+                          : 'text-slate-300 hover:text-white'
+                      }`}
+                      style={
+                        surfaceTheme === 'brand'
+                          ? { background: PRINT_TEMPLATES[templateId].brandGradientCss }
+                          : undefined
+                      }
+                    >
+                      Color Red
                     </button>
                   </div>
                 </div>

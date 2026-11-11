@@ -11,7 +11,7 @@ export type PrintTemplateId =
   | 'digital_card'
   | 'custom';
 
-export type PlaqueSurfaceTheme = 'light' | 'dark';
+export type PlaqueSurfaceTheme = 'light' | 'dark' | 'brand';
 
 export interface PrintTemplateConfig {
   id: PrintTemplateId;
@@ -19,6 +19,8 @@ export interface PrintTemplateConfig {
   shortLabel: string;
   accentPrimary: string;
   accentSecondary: string;
+  brandGradientCss: string;
+  brandGradientStops: [string, string, string];
   defaultHeadline: string;
   defaultSubtitle: string;
   defaultInstruction: string;
@@ -32,6 +34,8 @@ export const PRINT_TEMPLATES: Record<PrintTemplateId, PrintTemplateConfig> = {
     shortLabel: 'Google',
     accentPrimary: '#4285F4',
     accentSecondary: '#FBBC05',
+    brandGradientCss: 'linear-gradient(155deg, #4285F4 0%, #1A73E8 52%, #1557B0 100%)',
+    brandGradientStops: ['#4285F4', '#1A73E8', '#1557B0'],
     defaultHeadline: '¡Califícanos en Google!',
     defaultSubtitle: 'Tu opinión nos ayuda a seguir creciendo',
     defaultInstruction: 'Escanea el QR o acerca tu celular NFC',
@@ -43,6 +47,8 @@ export const PRINT_TEMPLATES: Record<PrintTemplateId, PrintTemplateConfig> = {
     shortLabel: 'Instagram',
     accentPrimary: '#E1306C',
     accentSecondary: '#F77737',
+    brandGradientCss: 'linear-gradient(145deg, #FF7A00 0%, #E1306C 50%, #7C3AED 100%)',
+    brandGradientStops: ['#FF7A00', '#E1306C', '#7C3AED'],
     defaultHeadline: '¡Síguenos en Instagram!',
     defaultSubtitle: 'Etiquétanos y entérate de las novedades',
     defaultInstruction: 'Escanea el código o apoya tu teléfono',
@@ -52,7 +58,9 @@ export const PRINT_TEMPLATES: Record<PrintTemplateId, PrintTemplateConfig> = {
     name: 'Facebook',
     shortLabel: 'Facebook',
     accentPrimary: '#1877F2',
-    accentSecondary: '#0E5FD8',
+    accentSecondary: '#00B4FF',
+    brandGradientCss: 'linear-gradient(155deg, #00B4FF 0%, #1877F2 50%, #0A4DA6 100%)',
+    brandGradientStops: ['#00B4FF', '#1877F2', '#0A4DA6'],
     defaultHeadline: '¡Síguenos en Facebook!',
     defaultSubtitle: 'Conecta con nuestra comunidad',
     defaultInstruction: 'Escanea el QR o acerca tu celular NFC',
@@ -63,6 +71,8 @@ export const PRINT_TEMPLATES: Record<PrintTemplateId, PrintTemplateConfig> = {
     shortLabel: 'TikTok',
     accentPrimary: '#FE2C55',
     accentSecondary: '#25F4EE',
+    brandGradientCss: 'linear-gradient(155deg, #080C14 0%, #05070B 60%, #101624 100%)',
+    brandGradientStops: ['#080C14', '#05070B', '#101624'],
     defaultHeadline: '¡Síguenos en TikTok!',
     defaultSubtitle: 'Mira nuestros videos y promociones',
     defaultInstruction: 'Escanea el código o acerca tu celular',
@@ -73,6 +83,8 @@ export const PRINT_TEMPLATES: Record<PrintTemplateId, PrintTemplateConfig> = {
     shortLabel: 'WhatsApp',
     accentPrimary: '#25D366',
     accentSecondary: '#128C7E',
+    brandGradientCss: 'linear-gradient(155deg, #00A884 0%, #16BA5A 52%, #128C7E 100%)',
+    brandGradientStops: ['#00A884', '#16BA5A', '#128C7E'],
     defaultHeadline: '¡Escríbenos por WhatsApp!',
     defaultSubtitle: 'Atención directa, catálogo y pedidos',
     defaultInstruction: 'Escanea el QR o acerca tu celular NFC',
@@ -83,6 +95,8 @@ export const PRINT_TEMPLATES: Record<PrintTemplateId, PrintTemplateConfig> = {
     shortLabel: 'Menú QR',
     accentPrimary: '#D97706',
     accentSecondary: '#F59E0B',
+    brandGradientCss: 'linear-gradient(155deg, #F59E0B 0%, #D97706 52%, #B45309 100%)',
+    brandGradientStops: ['#F59E0B', '#D97706', '#B45309'],
     defaultHeadline: 'Nuestro Menú Digital',
     defaultSubtitle: 'Carta actualizada al instante',
     defaultInstruction: 'Escanea con tu cámara para ver la carta',
@@ -93,6 +107,8 @@ export const PRINT_TEMPLATES: Record<PrintTemplateId, PrintTemplateConfig> = {
     shortLabel: 'Tarjeta NFC',
     accentPrimary: '#2563EB',
     accentSecondary: '#38BDF8',
+    brandGradientCss: 'linear-gradient(155deg, #38BDF8 0%, #2563EB 52%, #1E40AF 100%)',
+    brandGradientStops: ['#38BDF8', '#2563EB', '#1E40AF'],
     defaultHeadline: 'Conecta con nosotros',
     defaultSubtitle: 'Guarda nuestro contacto y redes',
     defaultInstruction: 'Acerca tu celular NFC o escanea el QR',
@@ -103,6 +119,8 @@ export const PRINT_TEMPLATES: Record<PrintTemplateId, PrintTemplateConfig> = {
     shortLabel: 'Nexo Pro',
     accentPrimary: '#3B82F6',
     accentSecondary: '#60A5FA',
+    brandGradientCss: 'linear-gradient(155deg, #2563EB 0%, #1D4ED8 52%, #0F172A 100%)',
+    brandGradientStops: ['#2563EB', '#1D4ED8', '#0F172A'],
     defaultHeadline: 'Escanea para acceder',
     defaultSubtitle: 'Enlace dinámico inteligente',
     defaultInstruction: 'Escanea el QR o apoya tu celular NFC',
@@ -175,7 +193,7 @@ function drawBrandBadgeOnCanvas(
   cx: number,
   cy: number,
   size: number,
-  isDark: boolean
+  surfaceTheme: PlaqueSurfaceTheme
 ) {
   ctx.save();
   ctx.translate(cx, cy);
@@ -183,7 +201,20 @@ function drawBrandBadgeOnCanvas(
   ctx.scale(scale, scale);
   ctx.translate(-24, -24);
 
+  const isBrand = surfaceTheme === 'brand';
+  const isDark = surfaceTheme === 'dark';
+
   if (templateId === 'google_reviews') {
+    if (isBrand) {
+      // White backing circle so 4-color Google G pops cleanly on Google Blue
+      ctx.beginPath();
+      ctx.fillStyle = '#FFFFFF';
+      ctx.arc(24, 24, 24, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.translate(24, 24);
+      ctx.scale(0.68, 0.68);
+      ctx.translate(-24, -24);
+    }
     ctx.fillStyle = '#EA4335';
     ctx.fill(
       new Path2D(
@@ -216,6 +247,11 @@ function drawBrandBadgeOnCanvas(
     roundRectPath(ctx, 2, 2, 44, 44, 12);
     ctx.fillStyle = grad;
     ctx.fill();
+    if (isBrand) {
+      ctx.strokeStyle = 'rgba(255,255,255,0.85)';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    }
     ctx.strokeStyle = '#FFFFFF';
     ctx.lineWidth = 3;
     roundRectPath(ctx, 10, 10, 28, 28, 8);
@@ -229,10 +265,10 @@ function drawBrandBadgeOnCanvas(
     ctx.fill();
   } else if (templateId === 'facebook') {
     ctx.beginPath();
-    ctx.fillStyle = '#1877F2';
+    ctx.fillStyle = isBrand ? '#FFFFFF' : '#1877F2';
     ctx.arc(24, 24, 22, 0, Math.PI * 2);
     ctx.fill();
-    ctx.fillStyle = '#FFFFFF';
+    ctx.fillStyle = isBrand ? '#1877F2' : '#FFFFFF';
     ctx.fill(
       new Path2D(
         'M29.8 25.5l.8-5.2h-5v-3.4c0-1.4.7-2.8 2.9-2.8h2.3V9.6s-2.1-.4-4.1-.4c-4.1 0-6.8 2.5-6.8 7v4.1h-4.6v5.2h4.6V39h5.7V25.5h4.2z'
@@ -240,10 +276,10 @@ function drawBrandBadgeOnCanvas(
     );
   } else if (templateId === 'tiktok') {
     roundRectPath(ctx, 2, 2, 44, 44, 12);
-    ctx.fillStyle = isDark ? '#111827' : '#090D16';
+    ctx.fillStyle = isDark || isBrand ? '#0F1522' : '#090D16';
     ctx.fill();
-    if (isDark) {
-      ctx.strokeStyle = '#334155';
+    if (isDark || isBrand) {
+      ctx.strokeStyle = 'rgba(255,255,255,0.22)';
       ctx.lineWidth = 1.5;
       ctx.stroke();
     }
@@ -267,6 +303,11 @@ function drawBrandBadgeOnCanvas(
     ctx.fillStyle = '#25D366';
     ctx.arc(24, 24, 22, 0, Math.PI * 2);
     ctx.fill();
+    if (isBrand) {
+      ctx.strokeStyle = 'rgba(255,255,255,0.9)';
+      ctx.lineWidth = 2.2;
+      ctx.stroke();
+    }
     ctx.fillStyle = '#FFFFFF';
     ctx.fill(
       new Path2D(
@@ -276,8 +317,13 @@ function drawBrandBadgeOnCanvas(
     );
   } else if (templateId === 'qr_menu') {
     roundRectPath(ctx, 2, 2, 44, 44, 12);
-    ctx.fillStyle = '#D97706';
+    ctx.fillStyle = isBrand ? 'rgba(255,255,255,0.18)' : '#D97706';
     ctx.fill();
+    if (isBrand) {
+      ctx.strokeStyle = 'rgba(255,255,255,0.6)';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+    }
     ctx.strokeStyle = '#FFFFFF';
     ctx.lineWidth = 2.8;
     ctx.lineCap = 'round';
@@ -286,14 +332,38 @@ function drawBrandBadgeOnCanvas(
   } else {
     const color = PRINT_TEMPLATES[templateId].accentPrimary;
     roundRectPath(ctx, 2, 2, 44, 44, 12);
-    ctx.fillStyle = color;
+    ctx.fillStyle = isBrand ? 'rgba(255,255,255,0.18)' : color;
     ctx.fill();
+    if (isBrand) {
+      ctx.strokeStyle = 'rgba(255,255,255,0.6)';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+    }
     ctx.strokeStyle = '#FFFFFF';
     ctx.lineWidth = 3;
     ctx.lineCap = 'round';
     ctx.stroke(new Path2D('M19 18a8 8 0 0 1 0 12m5-16a13 13 0 0 1 0 20m5-24a18 18 0 0 1 0 28'));
   }
 
+  ctx.restore();
+}
+
+function drawNfcCornerWaves(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  color: string
+) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 5.5;
+  ctx.lineCap = 'round';
+  [14, 24, 34].forEach((radius) => {
+    ctx.beginPath();
+    ctx.arc(0, 0, radius, -0.7, 0.7);
+    ctx.stroke();
+  });
   ctx.restore();
 }
 
@@ -304,6 +374,7 @@ export async function renderPlaqueToPngDataUrl(
 ): Promise<string> {
   const tpl = PRINT_TEMPLATES[options.templateId];
   const isDark = options.surfaceTheme === 'dark';
+  const isBrand = options.surfaceTheme === 'brand';
 
   const canvas = document.createElement('canvas');
   canvas.width = CANVAS_W;
@@ -312,55 +383,131 @@ export async function renderPlaqueToPngDataUrl(
   if (!ctx) throw new Error('No se pudo inicializar el lienzo 2D.');
 
   // Background
-  ctx.fillStyle = isDark ? '#0B1120' : '#FFFFFF';
-  ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
+  if (isBrand) {
+    const bgGrad = ctx.createLinearGradient(0, 0, CANVAS_W, CANVAS_H);
+    bgGrad.addColorStop(0, tpl.brandGradientStops[0]);
+    bgGrad.addColorStop(0.52, tpl.brandGradientStops[1]);
+    bgGrad.addColorStop(1, tpl.brandGradientStops[2]);
+    ctx.fillStyle = bgGrad;
+    ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
 
-  // Top decorative accent bar
-  if (options.templateId === 'instagram') {
-    const grad = ctx.createLinearGradient(0, 0, CANVAS_W, 0);
-    grad.addColorStop(0, '#F58529');
-    grad.addColorStop(0.5, '#DD2A7B');
-    grad.addColorStop(1, '#515BD4');
-    ctx.fillStyle = grad;
-    ctx.fillRect(0, 0, CANVAS_W, 34);
-  } else if (options.templateId === 'whatsapp_direct') {
-    const grad = ctx.createLinearGradient(0, 0, CANVAS_W, 0);
-    grad.addColorStop(0, '#25D366');
-    grad.addColorStop(1, '#128C7E');
-    ctx.fillStyle = grad;
-    ctx.fillRect(0, 0, CANVAS_W, 34);
-  } else if (options.templateId === 'google_reviews') {
-    const segW = CANVAS_W / 4;
-    ctx.fillStyle = '#4285F4';
-    ctx.fillRect(0, 0, segW, 34);
-    ctx.fillStyle = '#EA4335';
-    ctx.fillRect(segW, 0, segW, 34);
-    ctx.fillStyle = '#FBBC05';
-    ctx.fillRect(segW * 2, 0, segW, 34);
-    ctx.fillStyle = '#34A853';
-    ctx.fillRect(segW * 3, 0, segW, 34);
-  } else if (options.templateId === 'tiktok') {
-    ctx.fillStyle = '#25F4EE';
-    ctx.fillRect(0, 0, CANVAS_W / 2, 34);
-    ctx.fillStyle = '#FE2C55';
-    ctx.fillRect(CANVAS_W / 2, 0, CANVAS_W / 2, 34);
+    // Decorative corner waves for TikTok brand card (cyan top-left, magenta bottom-right)
+    if (options.templateId === 'tiktok') {
+      ctx.save();
+      ctx.fillStyle = 'rgba(37, 244, 238, 0.28)';
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(360, 0);
+      ctx.quadraticCurveTo(180, 140, 0, 320);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.fillStyle = 'rgba(254, 44, 85, 0.30)';
+      ctx.beginPath();
+      ctx.moveTo(CANVAS_W, CANVAS_H);
+      ctx.lineTo(CANVAS_W - 380, CANVAS_H);
+      ctx.quadraticCurveTo(CANVAS_W - 190, CANVAS_H - 160, CANVAS_W, CANVAS_H - 340);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+    } else if (options.templateId === 'google_reviews') {
+      // Google 4-color top bar accent even on brand blue
+      const segW = CANVAS_W / 4;
+      ctx.fillStyle = '#4285F4';
+      ctx.fillRect(0, 0, segW, 24);
+      ctx.fillStyle = '#EA4335';
+      ctx.fillRect(segW, 0, segW, 24);
+      ctx.fillStyle = '#FBBC05';
+      ctx.fillRect(segW * 2, 0, segW, 24);
+      ctx.fillStyle = '#34A853';
+      ctx.fillRect(segW * 3, 0, segW, 24);
+    } else {
+      // Subtle radial light sheen for depth
+      const sheen = ctx.createRadialGradient(
+        CANVAS_W * 0.2,
+        CANVAS_H * 0.15,
+        40,
+        CANVAS_W * 0.5,
+        CANVAS_H * 0.5,
+        CANVAS_H * 0.85
+      );
+      sheen.addColorStop(0, 'rgba(255,255,255,0.16)');
+      sheen.addColorStop(1, 'rgba(0,0,0,0.08)');
+      ctx.fillStyle = sheen;
+      ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
+    }
   } else {
-    ctx.fillStyle = tpl.accentPrimary;
-    ctx.fillRect(0, 0, CANVAS_W, 34);
+    ctx.fillStyle = isDark ? '#0B1120' : '#FFFFFF';
+    ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
+
+    // Top decorative accent bar on white / dark finishes
+    if (options.templateId === 'instagram') {
+      const grad = ctx.createLinearGradient(0, 0, CANVAS_W, 0);
+      grad.addColorStop(0, '#F58529');
+      grad.addColorStop(0.5, '#DD2A7B');
+      grad.addColorStop(1, '#515BD4');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, CANVAS_W, 34);
+    } else if (options.templateId === 'whatsapp_direct') {
+      const grad = ctx.createLinearGradient(0, 0, CANVAS_W, 0);
+      grad.addColorStop(0, '#25D366');
+      grad.addColorStop(1, '#128C7E');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, CANVAS_W, 34);
+    } else if (options.templateId === 'google_reviews') {
+      const segW = CANVAS_W / 4;
+      ctx.fillStyle = '#4285F4';
+      ctx.fillRect(0, 0, segW, 34);
+      ctx.fillStyle = '#EA4335';
+      ctx.fillRect(segW, 0, segW, 34);
+      ctx.fillStyle = '#FBBC05';
+      ctx.fillRect(segW * 2, 0, segW, 34);
+      ctx.fillStyle = '#34A853';
+      ctx.fillRect(segW * 3, 0, segW, 34);
+    } else if (options.templateId === 'tiktok') {
+      ctx.fillStyle = '#25F4EE';
+      ctx.fillRect(0, 0, CANVAS_W / 2, 34);
+      ctx.fillStyle = '#FE2C55';
+      ctx.fillRect(CANVAS_W / 2, 0, CANVAS_W / 2, 34);
+    } else {
+      ctx.fillStyle = tpl.accentPrimary;
+      ctx.fillRect(0, 0, CANVAS_W, 34);
+    }
   }
 
   // Subtle print frame
-  ctx.strokeStyle = isDark ? 'rgba(148,163,184,0.22)' : 'rgba(15,23,42,0.12)';
+  ctx.strokeStyle = isBrand
+    ? 'rgba(255,255,255,0.28)'
+    : isDark
+    ? 'rgba(148,163,184,0.22)'
+    : 'rgba(15,23,42,0.12)';
   ctx.lineWidth = 4;
   roundRectPath(ctx, 42, 62, CANVAS_W - 84, CANVAS_H - 104, 44);
   ctx.stroke();
 
-  // Brand emblem at top
-  drawBrandBadgeOnCanvas(ctx, options.templateId, CANVAS_W / 2, 185, 138, isDark);
+  // Top-right NFC wave indicator
+  if (options.showNfcIcon) {
+    drawNfcCornerWaves(
+      ctx,
+      CANVAS_W - 125,
+      138,
+      isBrand ? 'rgba(255,255,255,0.92)' : isDark ? '#94A3B8' : tpl.accentPrimary
+    );
+  }
 
-  // Business name pill/label
-  ctx.fillStyle = isDark ? '#94A3B8' : '#475569';
-  ctx.font = '600 34px "Plus Jakarta Sans", Arial, sans-serif';
+  // Brand emblem at top
+  drawBrandBadgeOnCanvas(
+    ctx,
+    options.templateId,
+    CANVAS_W / 2,
+    185,
+    144,
+    options.surfaceTheme
+  );
+
+  // Business name label
+  ctx.fillStyle = isBrand ? 'rgba(255,255,255,0.88)' : isDark ? '#94A3B8' : '#475569';
+  ctx.font = '700 34px "Plus Jakarta Sans", Arial, sans-serif';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.fillText(
@@ -370,7 +517,7 @@ export async function renderPlaqueToPngDataUrl(
   );
 
   // Main Headline
-  ctx.fillStyle = isDark ? '#F8FAFC' : '#0F172A';
+  ctx.fillStyle = isBrand || isDark ? '#FFFFFF' : '#0F172A';
   ctx.font = '800 66px "Plus Jakarta Sans", Arial, sans-serif';
   ctx.fillText(options.headline.slice(0, 32), CANVAS_W / 2, 382);
 
@@ -382,7 +529,7 @@ export async function renderPlaqueToPngDataUrl(
     ctx.fillText('★ ★ ★ ★ ★', CANVAS_W / 2, 466);
     qrTopY = 536;
   } else {
-    ctx.fillStyle = isDark ? '#CBD5E1' : '#334155';
+    ctx.fillStyle = isBrand ? 'rgba(255,255,255,0.9)' : isDark ? '#CBD5E1' : '#334155';
     ctx.font = '500 34px "DM Sans", Arial, sans-serif';
     ctx.fillText(options.subtitle.slice(0, 48), CANVAS_W / 2, 462);
   }
@@ -393,8 +540,8 @@ export async function renderPlaqueToPngDataUrl(
   ctx.fillStyle = '#FFFFFF';
   roundRectPath(ctx, qrBoxX, qrTopY, qrBoxSize, qrBoxSize, 42);
   ctx.fill();
-  ctx.strokeStyle = tpl.accentPrimary;
-  ctx.lineWidth = 8;
+  ctx.strokeStyle = isBrand ? 'rgba(255,255,255,0.85)' : tpl.accentPrimary;
+  ctx.lineWidth = isBrand ? 6 : 8;
   roundRectPath(ctx, qrBoxX, qrTopY, qrBoxSize, qrBoxSize, 42);
   ctx.stroke();
 
@@ -410,20 +557,20 @@ export async function renderPlaqueToPngDataUrl(
 
   // Instruction & NFC footer strip
   const instY = qrTopY + qrBoxSize + 92;
-  ctx.fillStyle = isDark ? '#E2E8F0' : '#0F172A';
+  ctx.fillStyle = isBrand || isDark ? '#FFFFFF' : '#0F172A';
   ctx.font = '700 38px "Plus Jakarta Sans", Arial, sans-serif';
   ctx.fillText(options.instruction.slice(0, 42), CANVAS_W / 2, instY);
 
   if (tpl.showStars && options.subtitle) {
-    ctx.fillStyle = isDark ? '#94A3B8' : '#64748B';
+    ctx.fillStyle = isBrand ? 'rgba(255,255,255,0.85)' : isDark ? '#94A3B8' : '#64748B';
     ctx.font = '500 30px "DM Sans", Arial, sans-serif';
     ctx.fillText(options.subtitle.slice(0, 52), CANVAS_W / 2, instY + 62);
   }
 
-  // NFC indicator + serial footer
+  // Serial footer
   const footerY = CANVAS_H - 110;
   if (options.showSerialFooter) {
-    ctx.fillStyle = isDark ? '#64748B' : '#94A3B8';
+    ctx.fillStyle = isBrand ? 'rgba(255,255,255,0.72)' : isDark ? '#64748B' : '#94A3B8';
     ctx.font = '500 24px "JetBrains Mono", monospace';
     const nfcTag = options.showNfcIcon ? 'NFC + QR  ·  ' : '';
     ctx.fillText(`${nfcTag}${plaque.serialCode}  ·  /qr/${plaque.slug}`, CANVAS_W / 2, footerY);
